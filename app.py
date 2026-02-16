@@ -11,8 +11,8 @@ import zipfile
 # Import processing function from external file
 from medical_image_project import process_image
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize Flask app (explicit folders for static/templates)
+app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
 # Configuration
 UPLOAD_FOLDER = 'static/uploads'
@@ -120,4 +120,5 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    app.run()
+    # Bind to 0.0.0.0 so the server is reachable from the host
+    app.run(host='0.0.0.0', port=5000, debug=True)
