@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Image Processing System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-section input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .upload-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-label:active {
+            transform: translateY(-1px);
+        }
+
+        .file-name {
+            color: #2c3e50;
+            font-size: 1em;
+            margin-top: 10px;
+            min-height: 25px;
+        }
+
+        .upload-info {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-3px);
+        }
+
+        .btn-download {
+            background: #27ae60;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .btn-download:hover {
+            background: #229954;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .image-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-label {
+            padding: 15px;
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.95em;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 30px;
+            background: #f0f1ff;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .download-section p {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        .reset-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 0.95em;
+        }
+
+        .reset-note strong {
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .upload-section {
+                padding: 25px;
+            }
+
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Medical Image Processing System</h1>
+            <p>Upload an X-ray image for advanced processing</p>
+        </div>
+
+        <!-- Messages -->
+        <div id="message" class="message"></div>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <label for="fileInput" class="upload-label">📁 Choose X-ray Image</label>
+            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" />
+            <div class="file-name" id="fileName"></div>
+            <div class="upload-info">
+                <p>Supported formats: JPG, PNG</p>
+                <p>Maximum file size: 20MB</p>
+            </div>
+            <!-- Button Group -->
+            <div class="button-group">
+                <button class="btn btn-primary" id="submitBtn" disabled>
+                    📤 Process Image
+                </button>
+                <button class="btn btn-secondary" id="resetBtn" onclick="resetForm()">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your image... This may take a few seconds.</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <h2 class="results-title">✅ Processing Complete</h2>
+
+            <!-- Processed Images Grid -->
+            <div class="images-grid" id="imagesGrid">
+                <!-- Images will be inserted here by JavaScript -->
+            </div>
+
+            <!-- Download Section -->
+            <div class="download-section">
+                <p>Download all processed images as a ZIP file:</p>
+                <button class="btn btn-download" id="downloadBtn" onclick="downloadResults()">
+                    📦 Download Results (ZIP)
+                </button>
+            </div>
+
+            <!-- Reset Note -->
+            <div class="reset-note">
+                <strong>Note:</strong> Click "Reset" above to process another image.
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const fileNameDisplay = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+        const imagesGrid = document.getElementById('imagesGrid');
+        const messageDiv = document.getElementById('message');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let currentOutputPrefix = '';
+
+        // File input change event
+        fileInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = `✓ Selected: ${this.files[0].name}`;
+                submitBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = '';
+                submitBtn.disabled = true;
+            }
+        });
+
+        // Drag and drop functionality
+        uploadSection.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', function () {
+            this.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileNameDisplay.textContent = `✓ Selected: ${files[0].name}`;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Submit button click event
+        submitBtn.addEventListener('click', uploadImage);
+
+        // Upload image function
+        function uploadImage() {
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a file', 'error');
+                return;
+            }
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                showMessage('Invalid file type. Please upload JPG or PNG.', 'error');
+                return;
+            }
+
+            // Validate file size (20MB max)
+            if (file.size > 20 * 1024 * 1024) {
+                showMessage('File is too large. Maximum size is 20MB.', 'error');
+                return;
+            }
+
+            // Show loading and hide results
+            loading.style.display = 'block';
+            resultsSection.classList.remove('show');
+            messageDiv.style.display = 'none';
+
+            // Create FormData and submit
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    currentOutputPrefix = data.output_prefix;
+                    displayResults(data);
+                    showMessage('Image processed successfully!', 'success');
+                } else {
+                    showMessage(`Error: ${data.error || 'Unknown error'}`, 'error');
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                showMessage(`Error: ${error.message}`, 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        // Display results function
+        function displayResults(data) {
+
+            imagesGrid.innerHTML = '';
+
+            const labels = [
+            "Grayscale",
+            "Histogram Equalized",
+            "Gaussian Blur",
+            "Median Filter",
+            "Sobel Edge Detection",
+            "Laplacian Edge Detection",
+            "Canny Edge Detection",
+                "Threshold",
+            "Adaptive Threshold",
+            "Erosion",
+            "Dilation"
+            ];
+
+            data.images.forEach((imagePath, index) => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+
+            card.innerHTML = `
+            <img src="${imagePath}?t=${Date.now()}" alt="Processed Image" />
+            <div class="image-label">${labels[index] || "Processed Image"}</div>
+            `;
+
+             imagesGrid.appendChild(card);
+            });
+
+            resultsSection.classList.add('show');
+        }
+
+
+        // Download results function
+        function downloadResults() {
+            if (!currentOutputPrefix) {
+                showMessage('No results to download', 'error');
+                return;
+            }
+
+            window.location.href = `/download/${currentOutputPrefix}`;
+        }
+
+        // Show message function
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Reset form function
+        function resetForm() {
+            fileInput.value = '';
+            fileNameDisplay.textContent = '';
+            submitBtn.disabled = true;
+            resultsSection.classList.remove('show');
+            messageDiv.style.display = 'none';
+            loading.style.display = 'none';
+            currentOutputPrefix = '';
+        }
+    </script>
+</body>
+
+</html>
