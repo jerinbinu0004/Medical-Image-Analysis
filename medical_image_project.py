@@ -1,94 +1,85 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 
-# -----------------------------
-# 1. Load Image
-# -----------------------------
-image_path = "xray.jpg"   # Make sure image is in same folder
+def process_image(image_path):
+    img = cv2.imread(image_path)
 
-img = cv2.imread(image_path)
+    if img is None:
+        return None
 
-if img is None:
-    print("Error: Image not found. Make sure xray.jpg is in the same folder.")
-    exit()
+    # Convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# Convert to grayscale
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Histogram Equalization
+    hist_equalized = cv2.equalizeHist(gray)
 
-# -----------------------------
-# 2. Histogram Equalization
-# -----------------------------
-hist_equalized = cv2.equalizeHist(gray)
+    # Gaussian Blur
+    gaussian = cv2.GaussianBlur(hist_equalized, (5, 5), 0)
 
-# -----------------------------
-# 3. Gaussian Smoothing
-# -----------------------------
-smoothed = cv2.GaussianBlur(hist_equalized, (5, 5), 0)
+    # Median Filter
+    median = cv2.medianBlur(gray, 5)
 
-# -----------------------------
-# 4. Sobel Edge Detection
-# -----------------------------
-sobel_x = cv2.Sobel(smoothed, cv2.CV_64F, 1, 0, ksize=3)
-sobel_y = cv2.Sobel(smoothed, cv2.CV_64F, 0, 1, ksize=3)
+    # Sobel Edge Detection
+    sobel_x = cv2.Sobel(gaussian, cv2.CV_64F, 1, 0, ksize=3)
+    sobel_y = cv2.Sobel(gaussian, cv2.CV_64F, 0, 1, ksize=3)
+    sobel_magnitude = cv2.magnitude(sobel_x, sobel_y)
+    sobel_magnitude = cv2.convertScaleAbs(sobel_magnitude)
 
-sobel_magnitude = cv2.magnitude(sobel_x, sobel_y)
-sobel_magnitude = cv2.convertScaleAbs(sobel_magnitude)
+    # Laplacian
+    laplacian = cv2.Laplacian(gaussian, cv2.CV_64F)
+    laplacian = cv2.convertScaleAbs(laplacian)
 
-# -----------------------------
-# 5. Thresholding (Segmentation)
-# -----------------------------
-_, thresholded = cv2.threshold(smoothed, 120, 255, cv2.THRESH_BINARY)
+    # Canny
+    canny = cv2.Canny(gaussian, 100, 200)
 
-# -----------------------------
-# 6. Save Outputs Automatically
-# -----------------------------
-if not os.path.exists("outputs"):
-    os.makedirs("outputs")
+    # Threshold
+    _, threshold = cv2.threshold(gaussian, 120, 255, cv2.THRESH_BINARY)
 
-cv2.imwrite("outputs/grayscale.jpg", gray)
-cv2.imwrite("outputs/hist_equalized.jpg", hist_equalized)
-cv2.imwrite("outputs/smoothed.jpg", smoothed)
-cv2.imwrite("outputs/edges.jpg", sobel_magnitude)
-cv2.imwrite("outputs/thresholded.jpg", thresholded)
+    # Adaptive Threshold
+    adaptive = cv2.adaptiveThreshold(
+        gaussian,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11,
+        2
+    )
 
-print("Processing complete! Check the 'outputs' folder.")
+    # Morphology
+    kernel = np.ones((3, 3), np.uint8)
+    erosion = cv2.erode(threshold, kernel, iterations=1)
+    dilation = cv2.dilate(threshold, kernel, iterations=1)
 
-# -----------------------------
-# 7. Display Results
-# -----------------------------
-plt.figure(figsize=(12, 8))
+    # Create output folder
+    output_folder = os.path.join("static", "outputs")
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
-plt.subplot(2, 3, 1)
-plt.title("Original")
-plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-plt.axis("off")
+    # Save images
+    cv2.imwrite(os.path.join(output_folder, "1_grayscale.jpg"), gray)
+    cv2.imwrite(os.path.join(output_folder, "2_hist_equalized.jpg"), hist_equalized)
+    cv2.imwrite(os.path.join(output_folder, "3_gaussian.jpg"), gaussian)
+    cv2.imwrite(os.path.join(output_folder, "4_median.jpg"), median)
+    cv2.imwrite(os.path.join(output_folder, "5_sobel.jpg"), sobel_magnitude)
+    cv2.imwrite(os.path.join(output_folder, "6_laplacian.jpg"), laplacian)
+    cv2.imwrite(os.path.join(output_folder, "7_canny.jpg"), canny)
+    cv2.imwrite(os.path.join(output_folder, "8_threshold.jpg"), threshold)
+    cv2.imwrite(os.path.join(output_folder, "9_adaptive.jpg"), adaptive)
+    cv2.imwrite(os.path.join(output_folder, "10_erosion.jpg"), erosion)
+    cv2.imwrite(os.path.join(output_folder, "11_dilation.jpg"), dilation)
 
-plt.subplot(2, 3, 2)
-plt.title("Grayscale")
-plt.imshow(gray, cmap="gray")
-plt.axis("off")
-
-plt.subplot(2, 3, 3)
-plt.title("Histogram Equalized")
-plt.imshow(hist_equalized, cmap="gray")
-plt.axis("off")
-
-plt.subplot(2, 3, 4)
-plt.title("Smoothed")
-plt.imshow(smoothed, cmap="gray")
-plt.axis("off")
-
-plt.subplot(2, 3, 5)
-plt.title("Sobel Edges")
-plt.imshow(sobel_magnitude, cmap="gray")
-plt.axis("off")
-
-plt.subplot(2, 3, 6)
-plt.title("Thresholded")
-plt.imshow(thresholded, cmap="gray")
-plt.axis("off")
-
-plt.tight_layout()
-plt.show()
+    # Return filenames for HTML display
+    return [
+        "outputs/1_grayscale.jpg",
+        "outputs/2_hist_equalized.jpg",
+        "outputs/3_gaussian.jpg",
+        "outputs/4_median.jpg",
+        "outputs/5_sobel.jpg",
+        "outputs/6_laplacian.jpg",
+        "outputs/7_canny.jpg",
+        "outputs/8_threshold.jpg",
+        "outputs/9_adaptive.jpg",
+        "outputs/10_erosion.jpg",
+        "outputs/11_dilation.jpg",
+    ]

@@ -92,6 +92,25 @@ http://localhost:5000
 
 The Medical Image Processing System interface should load.
 
+### Website Link (Persistent Local Access)
+
+- **Local URL:** http://localhost:5000
+
+Use the helper script to start the server in the background and keep it running:
+
+```bash
+# Make the helper executable (first time only)
+chmod +x run_server.sh
+
+# Start the server in background and print the link
+./run_server.sh
+
+# View logs
+tail -f server.log
+```
+
+The app will be available at the local URL above while the process is running.
+
 ## Usage Guide
 
 ### Step 1: Upload an Image

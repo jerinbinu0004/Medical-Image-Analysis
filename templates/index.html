@@ -504,27 +504,38 @@
 
         // Display results function
         function displayResults(data) {
-            const images = [
-                { key: 'original', label: 'Original Image' },
-                { key: 'grayscale', label: 'Grayscale' },
-                { key: 'enhanced', label: 'Enhanced (Histogram Equalization)' },
-                { key: 'blurred', label: 'Blurred (Gaussian)' },
-                { key: 'edges', label: 'Canny Edge Detection' }
-            ];
 
             imagesGrid.innerHTML = '';
-            images.forEach(img => {
-                const card = document.createElement('div');
-                card.className = 'image-card';
-                card.innerHTML = `
-                    <img src="${data[img.key]}?t=${Date.now()}" alt="${img.label}" />
-                    <div class="image-label">${img.label}</div>
-                `;
-                imagesGrid.appendChild(card);
+
+            const labels = [
+            "Grayscale",
+            "Histogram Equalized",
+            "Gaussian Blur",
+            "Median Filter",
+            "Sobel Edge Detection",
+            "Laplacian Edge Detection",
+            "Canny Edge Detection",
+                "Threshold",
+            "Adaptive Threshold",
+            "Erosion",
+            "Dilation"
+            ];
+
+            data.images.forEach((imagePath, index) => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+
+            card.innerHTML = `
+            <img src="${imagePath}?t=${Date.now()}" alt="Processed Image" />
+            <div class="image-label">${labels[index] || "Processed Image"}</div>
+            `;
+
+             imagesGrid.appendChild(card);
             });
 
             resultsSection.classList.add('show');
         }
+
 
         // Download results function
         function downloadResults() {
